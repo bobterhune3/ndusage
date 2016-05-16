@@ -77,4 +77,11 @@ func TestUsagePerctageAsString(t *testing.T) {
   assert.Equal(t, int64(33), getUsagePercentage("3","9"))
 }
 
-
+func TestIsSOMReportHeaderLine(t *testing.T) {
+  assert.True(t, isSOMReportHeaderLine( "[1]Primary Player Statistics For 2015 Anaheim Angels Totals After 42 Games" ))
+  assert.True(t, isSOMReportHeaderLine( "[1]Primary Player Statistics For 201" ))
+  assert.True(t, isSOMReportHeaderLine( "[1]Primary Player Statistics For 201" ))  
+  assert.False(t, isSOMReportHeaderLine( "[X]Primary Player Statistics For 2015 Anaheim Angels Totals After 42 Games" ))
+  assert.False(t, isSOMReportHeaderLine( ""))
+  assert.False(t, isSOMReportHeaderLine( "Random Text"))
+}
