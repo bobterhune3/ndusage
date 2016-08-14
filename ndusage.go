@@ -9,8 +9,9 @@ import (
     "bufio"
     "strconv"
     "regexp"
+    "sort"
 )
-const ABOVE_WATER_LINE = 55
+const ABOVE_WATER_LINE = 60
 
 const CARD_TYPE = 1
 const NAME = 2
@@ -213,7 +214,7 @@ func readSOMReport(filename string) (map[string][2]string, map[string][2]string)
               values := [2]string{ abat, currentTeam}
               mHitters[fullname] = values
 
-              fmt.Println(fullname,"=",abat)
+          //    fmt.Println(fullname,"=",abat)
 
             } else if isPitcher(bavgEra){
       //       fmt.Println(line)
@@ -300,43 +301,63 @@ func main() {
 
   fOutHTML, _ := os.Create("usageReport.html")
   defer fOutHTML.Close()
-  
-  htmlOutWriteHeaders(fOutHTML)
-  
-  fmt.Println("")
-  fmt.Println("HITTERS above Range")
-  fmt.Println("-------------------")
-  htmlOutSectionTableOpen(fOutHTML, "HITTERS")
     
+  hitters := make([]string, 3)
+  pitchers := make([]string, 3)   
+  
   for key, values := range m2H {
     realAtBats := mHitters[key]
-  //  somteam := mHitters[key][1]
     replayAtBats := values[0]
     somteam := values[1]
     usagePercent := getUsagePercentage(replayAtBats,realAtBats)
     if( usagePercent > int64(ABOVE_WATER_LINE) ) {
-      fmt.Println( key, somteam, replayAtBats,"~",realAtBats,"..",usagePercent,"%")
-      htmlOutAddPlayer(fOutHTML, key, somteam , realAtBats,replayAtBats, strconv.Itoa(int(usagePercent)))
+      hitters = append(hitters, fmt.Sprintf( "%s\t%10s\t%3s ~ %3s\t%d%%", somteam, key, replayAtBats,realAtBats,usagePercent))
+
+  //    fmt.Println( key, somteam, replayAtBats,"~",realAtBats,"..",usagePercent,"%")
+   //  htmlOutAddPlayer(fOutHTML, key, somteam , realAtBats,replayAtBats, strconv.Itoa(int(usagePercent)))
     }
   }
-  
-  htmlOutSectionTableClose(fOutHTML)
-   
-  fmt.Println("")
-  fmt.Println("PITCHERS above Range")
-  fmt.Println("--------------------") 
-  htmlOutSectionTableOpen(fOutHTML, "PITCHERS")
-  
+
   for key, values := range m2P {
     realInningsPitchers := mPitchers[key]
     replayInningsPitched := values[0]
     somteam := values[1]
     usagePercent := getUsagePercentage(replayInningsPitched,realInningsPitchers)
     if( usagePercent > int64(ABOVE_WATER_LINE) ) {
-      fmt.Println( key, somteam , replayInningsPitched,"~",realInningsPitchers,"..",usagePercent,"%")
-      htmlOutAddPlayer(fOutHTML, key, somteam, realInningsPitchers, replayInningsPitched, strconv.Itoa(int(usagePercent)))
+      
+      pitchers = append(pitchers, fmt.Sprintf( "%s\t%10s\t%5s ~ %3s\t%d%%", somteam, key, replayInningsPitched,realInningsPitchers,usagePercent))
+    //  htmlOutAddPlayer(fOutHTML, key, somteam, realInningsPitchers, replayInningsPitched, strconv.Itoa(int(usagePercent)))
+
     }
   }
+  
+  sort.Strings(hitters)
+  sort.Strings(pitchers)
+      
+  htmlOutWriteHeaders(fOutHTML)
+  
+  fmt.Println("")
+  fmt.Println("HITTERS above Range")
+  fmt.Println( "TEAM\tPLAYER\t\tRPLY ~ ACT\tUSAGE")
+  fmt.Println("--------------------------------------------")
+  htmlOutSectionTableOpen(fOutHTML, "HITTERS")
+  
+  for _, myline := range hitters {
+     fmt.Println(myline)
+  }
+    
+  htmlOutSectionTableClose(fOutHTML)
+       
+  fmt.Println("")
+  fmt.Println("PITCHERS above Range")
+  fmt.Println( "TEAM\tPLAYER\t\tRPLY ~ ACT\tUSAGE")
+  fmt.Println("--------------------------------------------")
+  htmlOutSectionTableOpen(fOutHTML, "PITCHERS")
+  
+  for _, myline := range pitchers {
+     fmt.Println(myline)
+  }
+  
   htmlOutSectionTableClose(fOutHTML) 
   
   fOutHTML.Sync()
