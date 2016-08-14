@@ -8,8 +8,9 @@ import (
     "strings"
     "bufio"
     "strconv"
+    "regexp"
 )
-const ABOVE_WATER_LINE = 45
+const ABOVE_WATER_LINE = 55
 
 const CARD_TYPE = 1
 const NAME = 2
@@ -65,10 +66,16 @@ func readRealStatFile(filename string) (map[string]string) {
 }
 
 func isPlayerLine(line string) (bool) {
+ splits := strings.Split(line, " ")
+
+ var validID = regexp.MustCompile("([a-z,]+)")
+//fmt.Println(splits[0])
   if( len(line) != 0 &&
       line[0] != '[' && 
       line[0] != '-' &&
       line[0] != ' ' &&
+      line[0] != '.' &&
+      validID.MatchString( splits[0])  &&
       !strings.Contains(strings.ToUpper(line), "ALL ") &&
       !strings.Contains(strings.ToUpper(line), "TEAM")) {
     
@@ -86,6 +93,15 @@ func isHitter(data string) (bool) {
   return f < .601
 }
 
+func isPitcher(data string) (bool) {
+  f, err := strconv.ParseFloat(data,64)
+  if err != nil  {
+   // fmt.Println(err)
+    return false
+  }
+  return f > .601
+}
+
 func buildName(names []string) (string) {
   names[1] = strings.Trim(names[1], " ");
   names[0] = strings.Trim(names[0], " ");
@@ -101,7 +117,7 @@ func getNextValidField(line []string, index int) (int, string) {
 
   i:= index
   if( i > len(line)) {
-   fmt.Println("ERR: to big for line " + line[0])
+//   fmt.Println("ERR: to big for line " + line[0])
    return 999,""
   }
   field := strings.Trim(line[i], " ");
@@ -153,12 +169,13 @@ func readSOMReport(filename string) (map[string][2]string, map[string][2]string)
     line := scanner.Text()
 
     line = strings.Trim(line, " ")
-
+     //       fmt.Println(line)
     if( len(line) > 0 ) {
+
       if( isSOMReportHeaderLine(line)) {
         currentTeam = line[38:44]
+
       } else {
-    
         if(isPlayerLine(line)) {
 
           splits := strings.Split(line, " ")
@@ -196,9 +213,10 @@ func readSOMReport(filename string) (map[string][2]string, map[string][2]string)
               values := [2]string{ abat, currentTeam}
               mHitters[fullname] = values
 
-       //       fmt.Println(fullname,"=",abat)
+              fmt.Println(fullname,"=",abat)
 
-            } else {
+            } else if isPitcher(bavgEra){
+      //       fmt.Println(line)
                foundIndex, loss := getNextValidField(splits, foundIndex)
                foundIndex, pct := getNextValidField(splits, foundIndex)  
                foundIndex, g := getNextValidField(splits, foundIndex)    
@@ -322,4 +340,5 @@ func main() {
   htmlOutSectionTableClose(fOutHTML) 
   
   fOutHTML.Sync()
+  
 }

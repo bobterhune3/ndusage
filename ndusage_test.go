@@ -11,7 +11,7 @@ import (
 func TestIsPlayerLine(t *testing.T) {
   assert.True(t, isPlayerLine("TERHUNE, B"), "Valid Name" )
   assert.False(t, isPlayerLine("[4]"), "Color Code" )
-  assert.True(t, isPlayerLine("23423423"), "Numbers" )
+  assert.False(t, isPlayerLine("23423423"), "Numbers" )
   assert.False(t, isPlayerLine("ALL TEAM"), "ALL TEAM" )
   assert.False(t, isPlayerLine("TEAM"), "TEAM IN CAPS" )
   assert.False(t, isPlayerLine(""), "Empty" )
